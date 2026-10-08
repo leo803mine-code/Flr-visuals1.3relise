@@ -1,0 +1,21 @@
+name: build
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack zip
+        run: |
+          unzip -q ./*.zip -d src_unpacked
+          cd src_unpacked/*/ && pwd > ../../projdir.txt
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: 8.10.2 }
+      - name: Build
+        run: cd "$(cat projdir.txt)" && gradle build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flrvisuals
+          path: src_unpacked/*/build/libs/*.jar
